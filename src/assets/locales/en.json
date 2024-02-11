@@ -1,0 +1,17 @@
+{
+  "action": {
+    "delete": "Delete",
+    "download": "Download"
+  },
+  "label": {
+    "action": "Actions",
+    "name": "Name"
+  },
+  "message": {
+    "file": {
+      "init": "Choose a file",
+      "not_multiple": " was selected",
+      "multiple": " were selected"
+    }
+  }
+}

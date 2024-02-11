@@ -1,0 +1,88 @@
+@use "../utils" as *;
+
+.al-color-picker {
+  overflow: hidden;
+
+  & > .al-picker {
+    overflow: hidden;
+    cursor: crosshair;
+    position: relative;
+
+    & > .preview {
+      width: 30%;
+      position: relative;
+
+      & > input {
+        position: absolute;
+      }
+    }
+
+    & > .color {
+      width: 100%;
+      position: relative;
+
+      & > canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .indicator {
+        width: 20px;
+        height: 20px;
+        border-width: 2px;
+        position: absolute;
+        border-style: solid;
+        @include transform(translate(-10px, -10px));
+        @include border-radius($border-radius-circle);
+      }
+    }
+  }
+
+  & > .al-slider {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+
+    & > .background {
+      left: 0;
+      top: 50%;
+      right: 0;
+      z-index: 0;
+      position: absolute;
+      transform: translateY(-50%);
+      background: linear-gradient(
+        to right,
+        hsl(0, 100%, 50%),
+        hsl(60, 100%, 50%),
+        hsl(120, 100%, 50%),
+        hsl(180, 100%, 50%),
+        hsl(240, 100%, 50%),
+        hsl(300, 100%, 50%),
+        hsl(360, 100%, 50%)
+      );
+    }
+
+    & input[type="range"] {
+      margin: 0;
+      padding: 0;
+      z-index: 1;
+      width: 100%;
+      outline: none;
+      display: block;
+      cursor: pointer;
+      appearance: none;
+      position: sticky;
+      background-color: transparent;
+
+      &::-webkit-slider-thumb {
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: currentColor;
+        cursor: pointer;
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+// font-size
+$font-size: 1rem;
+$font-size-xs: $font-size * 0.5;
+$font-size-sm: $font-size * 0.75;
+$font-size-md: $font-size * 1;
+$font-size-lg: $font-size * 1.5;
+$font-size-xl: $font-size * 2;
+
+// margin
+$margin: 1rem;
+$margin-xs: $margin * 0.25;
+$margin-sm: $margin * 0.5;
+$margin-md: $margin * 0.75;
+$margin-lg: $margin * 1;
+$margin-xl: $margin * 1.5;
+
+// font-weight
+$font-weight-200: 200;
+$font-weight-300: 300;
+$font-weight-400: 400;
+$font-weight-500: 500;
+$font-weight-600: 600;
+$font-weight-700: 700;
+$font-weight-800: 800;
+$font-weight-900: 900;
+$font-weight: $font-weight-400;
+
+// border
+$border-radius: 16px;
+$border-radius-circle: 50%;
+$border-radius-round: 30px;
+
+// line-height
+$line-height: 1.8;
+
+// media width
+$media-xs: 576px;
+$media-sm: 768px;
+$media-md: 992px;
+$media-lg: 1200px;
+$media-xl: 1400px;

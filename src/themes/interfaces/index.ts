@@ -1,0 +1,10 @@
+export type { Border } from './border';
+export type { Color } from './color';
+export type { ColorFont } from './colorFont';
+export type { ColorSchema } from './colorSchema';
+export type { ColorStatus } from './colorStatus';
+export type { Component } from './component';
+export type { Font } from './font';
+export type { Palette } from './palette';
+export type { Spacing } from './spacing';
+export type { Theme } from './theme';

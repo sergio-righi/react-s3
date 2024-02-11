@@ -1,0 +1,21 @@
+@use "../utils" as *;
+
+.al-code {
+  width: 100%;
+  @include d-flex;
+  gap: $margin-md;
+
+  input {
+    width: 100%;
+    height: 100px;
+    text-align: center;
+    padding: $margin-xs 0;
+    font-size: $font-size-lg;
+    border-radius: $border-radius;
+
+    &:focus {
+      outline-width: 2px;
+      outline-style: solid;
+    }
+  }
+}
