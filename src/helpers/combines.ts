@@ -19,10 +19,21 @@ export const interpolate = (str: string, obj: any): string => {
  * @return {string} /foo/bar/12345
  */
 
-export const interpolateURL = (url: string, obj: any): string => {
-  return Object.keys(obj).reduce((previousValue: string, currentValue: string) => {
-    return previousValue.replaceAll(`:${currentValue}`, obj[currentValue]);
-  }, url);
+export const interpolateURL = (url: string, obj: Record<string, any>): string => {
+  return url.replace(/:([^/?]+)\??/g, (match: string, key: string) => {
+    // Check if the key exists in the object
+    if (obj[key] !== undefined && obj[key] !== null) {
+      return obj[key];  // Replace with the value if it exists
+    }
+
+    // If the parameter is optional (indicated by "?"), remove it from the URL
+    if (match.includes('?')) {
+      return '';  // Remove the placeholder if it's optional and value is missing
+    }
+
+    // If the parameter is not optional and no value is provided, return the match
+    return match;
+  }).replace(/\/+/g, '/').replace(/\/$/, '');  // Clean up double slashes and trailing slash
 };
 
 /**

@@ -10,8 +10,9 @@ import {
 } from "@mui/material";
 import { Custom, Icon, Progress } from "components";
 import { useApp, useTheme } from "contexts";
+import { useParams } from "react-router-dom";
 import { Constants, S3 } from "utils";
-import { IFile } from "interfaces";
+import { IDocument } from "interfaces";
 
 // icons
 import { DeleteForeverRounded, DownloadRounded } from "@mui/icons-material";
@@ -19,35 +20,37 @@ import { DeleteForeverRounded, DownloadRounded } from "@mui/icons-material";
 export const Home = () => {
   const { t } = useApp();
   const { theme } = useTheme();
+  const { directory } = useParams();
 
   const attachmentRef = useRef<any>(null);
   const pageContainerRef = useRef<any>(null);
   const attachmentButtonRef = useRef<any>(null);
   const dropboxContainerRef = useRef<any>(null);
 
-  const [usage, setUsage] = useState<number>(0);
-  const [dropbox, setDropbox] = useState<boolean>(false);
   const [percentage, setPercentage] = useState<number>(0);
-  const [attachments, setAttachments] = useState<IFile[]>([]);
+  const [documents, setDocuments] = useState<IDocument[]>([]);
   const [inProgress, setInProgress] = useState<boolean>(false);
 
   useEffect(() => {
     initDropbox();
-    updateDiskUsage();
-
-    S3.FOLDER_NAME = "";
 
     S3.ACTION_CALLBACK = handleActionCallback;
-    S3.CONFIRM_CALLBACK = handleConfirmCallback;
 
-    // it retrieves the credentials
-    S3.set({
-      endpoint: Constants.S3_CREDENTIALS.ENDPOINT,
-      accessKey: Constants.S3_CREDENTIALS.ACCESS_KEY,
-      secretKey: Constants.S3_CREDENTIALS.SECRET_KEY,
-      bucketName: Constants.S3_CREDENTIALS.BUCKET_NAME,
-    });
+    S3.config(
+      {
+        endpoint: Constants.S3.ENDPOINT,
+        accessKeyId: Constants.S3.ACCESS_KEY,
+        secretAccessKey: Constants.S3.SECRET_KEY,
+      },
+      Constants.S3.BUCKET_NAME
+    );
+
+    fetchData();
   }, []);
+
+  function fetchData() {
+    S3.fetch(directory ?? "", false);
+  }
 
   function initDropbox() {
     if (
@@ -87,81 +90,72 @@ export const Home = () => {
         e.preventDefault();
         dropboxContainerRef.current.classList.remove("active");
 
-        S3.put([...e.dataTransfer.items].map((item: any) => item.getAsFile()));
-      });
+        const files = [...e.dataTransfer.items].map((item: any) =>
+          item.getAsFile()
+        );
 
-      attachmentButtonRef.current.addEventListener("click", function (e: any) {
-        attachmentRef.current.click();
-      });
-
-      attachmentRef.current.addEventListener("change", function (e: any) {
-        const files = e.target.files;
-
-        if (files.length === 0) {
-          attachmentButtonRef.current.setAttribute(
-            "data-label",
-            attachmentButtonRef.current.dataset.init
-          );
-        } else if (files.length === 1) {
-          attachmentButtonRef.current.setAttribute(
-            "data-label",
-            files[0].name + attachmentButtonRef.current.dataset.notMultiple
-          );
-        } else {
-          attachmentButtonRef.current.setAttribute(
-            "data-label",
-            files.length + attachmentButtonRef.current.dataset.multiple
-          );
-        }
-
-        S3.put(files);
+        files.length > 0 && S3.upload(directory ?? "", files);
       });
     }
   }
 
-  function updateDiskUsage() {
-    // TODO : check whether the file can be uploaded
-    setUsage(0);
+  function handleOnClick(e: any) {
+    attachmentRef.current.click();
+  }
+
+  function handleOnChange(e: any) {
+    const files = e.target.files;
+    handleOnChangeCallback(files);
+    S3.upload(directory ?? "", files);
+  }
+
+  function handleOnChangeCallback(files: File[]) {
+    if (files.length === 0) {
+      attachmentButtonRef.current.setAttribute(
+        "data-label",
+        attachmentButtonRef.current.dataset.init
+      );
+    } else {
+      if (files.length === 1) {
+        attachmentButtonRef.current.setAttribute(
+          "data-label",
+          files[0].name + attachmentButtonRef.current.dataset.notMultiple
+        );
+      } else {
+        attachmentButtonRef.current.setAttribute(
+          "data-label",
+          files.length + attachmentButtonRef.current.dataset.multiple
+        );
+      }
+    }
   }
 
   function handleActionCallback(response: any) {
-    console.log(response);
+    // console.log(response);
 
     switch (response.action) {
-      case "delete":
-        setAttachments(response.values);
-        break;
       case "fetch":
-        setAttachments(response.values);
+      case "upload":
+      case "delete":
+        setDocuments(response.values);
         break;
       case "progress":
         setPercentage(response.value);
         break;
-      case "replace":
-        // TODO : size calculation
-        break;
-      case "reset":
-        setInProgress(false);
-        attachmentRef.current.value = "";
-        break;
-      case "restart":
+      case "end":
         setPercentage(0);
+        setInProgress(false);
+        handleOnChangeCallback([]);
+        attachmentRef.current.value = "";
         break;
       case "start":
         setInProgress(true);
         break;
-      case "upload":
-        setAttachments(response.values);
-        break;
     }
   }
 
-  function handleConfirmCallback(message: any, onOk: any, onCancel: any) {
-    onOk && onOk();
-  }
-
-  function keyToName(key: string): string {
-    return key.replace(S3.FOLDER_NAME, "").replace(/\//, "");
+  function keyToName(key: string, isDirectory: boolean): string {
+    return isDirectory ? key.replace(/\//, "") : key.split("/").pop() ?? "";
   }
 
   function sizeToString(size: number): string {
@@ -169,7 +163,7 @@ export const Home = () => {
     if (size === 0) return "0 b";
     const i = Math.floor(Math.log(size) / Math.log(1024));
     const formattedSize = parseFloat((size / Math.pow(1024, i)).toFixed(2));
-    return `~ ${formattedSize} ${sizes[i]}`;
+    return `${formattedSize} ${sizes[i]}`;
   }
 
   return (
@@ -208,7 +202,13 @@ export const Home = () => {
       ></Box>
       {/* attachment container */}
       <Box className="attachment-container">
-        <input ref={attachmentRef} type="file" multiple={true} hidden={true} />
+        <input
+          hidden
+          multiple
+          type="file"
+          ref={attachmentRef}
+          onChange={handleOnChange}
+        />
         <Custom.Button
           ref={attachmentButtonRef}
           className="btn btn-primary"
@@ -221,7 +221,8 @@ export const Home = () => {
               content: "attr(data-label)",
             },
           }}
-        ></Custom.Button>
+          onClick={handleOnClick}
+        />
       </Box>
       {/* in progress bar */}
       {inProgress && <Progress.LinearProgressWithLabel value={percentage} />}
@@ -234,24 +235,23 @@ export const Home = () => {
           borderRadius: theme.border.radius,
         }}
       >
-        {attachments.map((item: IFile, i: number) => {
+        {documents.map((item: IDocument, i: number) => {
           return (
-            <>
+            <Box key={item.Key}>
               <ListItem
-                key={item.Key}
                 secondaryAction={
                   <Stack direction="row" spacing={theme.spacing.md}>
                     <Custom.IconButton
                       edge="end"
                       aria-label="download"
-                      onClick={() => S3.get(item.Key)}
+                      onClick={() => S3.download(item.Key)}
                     >
                       <DownloadRounded />
                     </Custom.IconButton>
                     <Custom.IconButton
                       edge="end"
                       aria-label="delete"
-                      onClick={() => S3.remove(item.Key, item.Size)}
+                      onClick={() => S3.remove(item.Key)}
                     >
                       <DeleteForeverRounded />
                     </Custom.IconButton>
@@ -261,8 +261,8 @@ export const Home = () => {
                 <ListItemAvatar>
                   <Avatar
                     src={[
-                      Constants.S3_CREDENTIALS.ENDPOINT,
-                      Constants.S3_CREDENTIALS.BUCKET_NAME,
+                      Constants.S3.ENDPOINT,
+                      Constants.S3.BUCKET_NAME,
                       item.Key,
                     ].join("/")}
                   >
@@ -270,12 +270,12 @@ export const Home = () => {
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText
-                  primary={keyToName(item.Key)}
-                  secondary={sizeToString(item.Size)}
+                  primary={keyToName(item.Key, false)}
+                  secondary={sizeToString(item.Size ?? 0)}
                 />
               </ListItem>
-              {attachments.length - 1 !== i && <Custom.Divider />}
-            </>
+              {documents.length - 1 !== i && <Custom.Divider />}
+            </Box>
           );
         })}
       </List>

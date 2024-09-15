@@ -11,7 +11,7 @@ export default () => {
     <BrowserRouter>
       <Routes>
         {/* landing page */}
-        <Route index element={<Home />} />
+        <Route index path={Urls.home} element={<Home />} />
 
         {/* default routes */}
         <Route path="*" element={<EmptyLayout />}>

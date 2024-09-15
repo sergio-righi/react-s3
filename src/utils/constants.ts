@@ -52,7 +52,7 @@ export const REFRESH_RATE = {
   ALERT: 5000
 }
 
-export const S3_CREDENTIALS = {
+export const S3 = {
   ENDPOINT: String(process.env.REACT_APP_ENDPOINT),
   ACCESS_KEY: String(process.env.REACT_APP_ACCESS_KEY),
   SECRET_KEY: String(process.env.REACT_APP_SECRET_KEY),

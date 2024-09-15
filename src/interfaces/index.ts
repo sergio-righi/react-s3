@@ -1,1 +1,1 @@
-export type { IFile } from "./file";
+export type { IDocument } from "./document";
