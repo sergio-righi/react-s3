@@ -14,7 +14,7 @@ class S3 {
   private BUCKET_NAME: string = "";
   private FILES: IDocument[] = [];
   private s3: AWS.S3;
-  private props: { index: number; queue: File[]; maxKeys: number, chunkSize: number; threadsQuantity: number } = {
+  private props: { index: number; queue: File[]; maxKeys: number; chunkSize: number; threadsQuantity: number } = {
     index: -1,
     queue: [],
     maxKeys: 99, // max number of documents retrieved
